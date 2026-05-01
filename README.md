@@ -89,13 +89,11 @@ npm run dev
 
 保存后，访问 `http://localhost:3000/products` 即可看到完整的产品管理界面！
 
-### 方式二：使用命令行生成 Schema
+### 方式二：使用命令行生成 Schema（简单方式）
 
-命令行工具提供了多种方式来创建和管理 Schema。
+命令行工具已简化，只需记住一个命令模式。
 
 #### 1. 查看现有 Schema
-
-首先，查看已存在的 Schema：
 
 ```bash
 node scripts/generate-schema.js list
@@ -103,84 +101,48 @@ node scripts/generate-schema.js list
 
 输出示例：
 ```
-已存在的 schema 文件:
+现有 Schema:
+
+  📄 class
+     显示名称: class
+     字段数: 6
+
+  📄 drink
+     显示名称: 饮料
+     字段数: 5
 
   📄 laptop
      显示名称: 笔记本电脑
-     描述: 笔记本电脑信息管理
      字段数: 5
 
   📄 server
      显示名称: 服务器电脑
-     描述: 服务器电脑信息管理
      字段数: 6
 ```
 
-#### 2. 复制现有 Schema（推荐）
+#### 2. 创建新的 Schema 模板
 
-如果你想基于已有的 Schema 创建新的 Schema，使用 `copy` 命令：
-
-```bash
-# 格式：node scripts/generate-schema.js copy <源名称> <新名称>
-node scripts/generate-schema.js copy server laptop
-```
-
-这会复制 `server` 的配置创建一个新的 `laptop` Schema，并自动更新表名、显示名称等信息。
-
-#### 3. 从 JSON 数据文件生成 Schema
-
-⚠️ **重要说明**：这个命令用于从**包含实际数据的 JSON 文件**推断字段类型，不是从已有的 Schema 文件复制。
-
-数据文件示例（`data.json`）：
-```json
-{
-  "uuid": "sjxjwljxkjk",
-  "desc": "这是一个笔记本品牌",
-  "name": "dell",
-  "cpu_num": 4,
-  "memory": 16
-}
-```
-
-生成 Schema：
-```bash
-# 格式：node scripts/generate-schema.js from-data <数据文件路径> <新名称>
-node scripts/generate-schema.js from-data ./data.json laptop
-```
-
-工具会自动推断每个字段的类型（string、number 等），并生成相应的 Schema 配置。
-
-#### 4. 手动创建 Schema
-
-完全从零开始创建新的 Schema：
+创建一个空的 Schema 模板，然后手动编辑字段：
 
 ```bash
-# 格式：node scripts/generate-schema.js create <名称> [--fields=<字段列表>]
-node scripts/generate-schema.js create products --fields=name:string:产品名称:true,price:number:价格:true:false:0
+# 格式：node scripts/generate-schema.js <新名称>
+node scripts/generate-schema.js products
 ```
 
-**字段格式**：`字段名:类型:标签:必填:唯一:默认值`
+这会创建 `schemas/products.schema.json` 文件，包含一个默认的 `name` 字段。你可以编辑该文件添加更多字段。
 
-- 字段名：数据库列名
-- 类型：string、number、boolean、date、datetime
-- 标签：显示在界面上的中文名称
-- 必填：true 或 false（可选）
-- 唯一：true 或 false（可选）
-- 默认值：字段默认值（可选）
+#### 3. 复制现有 Schema（推荐）
 
-示例：
+基于已有的 Schema 创建新的 Schema：
+
 ```bash
-# 必填的产品名称
-name:string:产品名称:true
-
-# 可选的价格，默认值为 0
-price:number:价格:false:false:0
-
-# 必填且唯一的邮箱
-email:string:邮箱:true:true
+# 格式：node scripts/generate-schema.js <新名称> <源名称>
+node scripts/generate-schema.js laptop server
 ```
 
-#### 查看完整帮助
+这会从 `server` 复制创建 `laptop`，并自动更新表名、显示名称等信息。
+
+#### 查看帮助
 
 ```bash
 node scripts/generate-schema.js help
@@ -445,79 +407,21 @@ npm run dev
 
 ## 常见问题与故障排除
 
-### Q1: 命令行工具报错 "文件不存在"
+### Q1: 命令行工具怎么用？
 
-**错误信息**：
-```
-错误: 文件不存在: /path/to/file.json
-```
+**简化后的命令**：
 
-**可能的原因和解决方案**：
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `node scripts/generate-schema.js list` | 查看所有现有 Schema | `node scripts/generate-schema.js list` |
+| `node scripts/generate-schema.js <新名称>` | 创建新的 Schema 模板 | `node scripts/generate-schema.js products` |
+| `node scripts/generate-schema.js <新名称> <源名称>` | 复制现有 Schema 创建新的 | `node scripts/generate-schema.js laptop server` |
 
-| 场景 | 原因 | 解决方案 |
-|------|------|----------|
-| 使用 `from-data` 命令时路径错误 | 文件路径不正确，或文件在其他位置 | 1. 确保文件路径正确<br>2. 检查文件是否在 `schemas/` 目录下<br>3. 使用绝对路径 |
-| 想复制已有 Schema 却用了 `from-data` 命令 | 混淆了命令用途 | 使用 `copy` 命令代替：<br>`node scripts/generate-schema.js copy <源名称> <新名称>` |
+**关键提示**：
+- 复制命令的格式是：`<新名称> <源名称>`（新的在前，源的在后）
+- 例如：`node scripts/generate-schema.js laptop server` 意思是从 `server` 复制创建 `laptop`
 
-**示例**：
-
-❌ 错误的做法：
-```bash
-# 这是错误的！server.schema.json 是 Schema 文件，不是数据文件
-node scripts/generate-schema.js from-data ./server.schema.json laptop
-```
-
-✅ 正确的做法：
-```bash
-# 方式1：复制现有 Schema（推荐）
-node scripts/generate-schema.js copy server laptop
-
-# 方式2：先查看现有 Schema
-node scripts/generate-schema.js list
-
-# 方式3：从数据文件生成（数据文件包含实际数据，不是 Schema 配置）
-node scripts/generate-schema.js from-data ./data.json laptop
-```
-
-### Q2: 命令行工具报错 "检测到这是一个 schema 配置文件，不是数据文件"
-
-**错误信息**：
-```
-错误: 检测到这是一个 schema 配置文件，不是数据文件
-```
-
-**原因**：你使用了 `from-data` 或 `from-json` 命令，但提供的文件是一个 Schema 配置文件（包含 `tableName`、`fields` 等字段），而不是包含实际数据的文件。
-
-**解决方案**：
-
-| 你的意图 | 正确命令 |
-|----------|----------|
-| 复制现有 Schema 创建新的 | `node scripts/generate-schema.js copy <源名称> <新名称>` |
-| 从实际数据推断字段类型 | 准备一个包含实际数据的 JSON 文件，然后使用 `from-data` 命令 |
-
-**数据文件 vs Schema 文件的区别**：
-
-📄 **数据文件**（用于 `from-data` 命令）：
-```json
-{
-  "name": "Dell",
-  "cpu_num": 4,
-  "memory": 16
-}
-```
-
-📄 **Schema 文件**（位于 `schemas/` 目录）：
-```json
-{
-  "tableName": "laptops",
-  "displayName": "笔记本电脑",
-  "fields": [
-    {"name": "name", "type": "string", "label": "品牌名称", ...}
-  ]
-}
-```
-
-### Q3: 如何快速开始？
+### Q2: 如何快速开始？
 
 **最简单的流程**：
 
@@ -528,7 +432,8 @@ node scripts/generate-schema.js from-data ./data.json laptop
 
 2. **复制现有 Schema**（如果有类似的）：
    ```bash
-   node scripts/generate-schema.js copy server laptop
+   # 从 server 复制创建 laptop
+   node scripts/generate-schema.js laptop server
    ```
 
 3. **编辑生成的 Schema 文件**：
@@ -545,7 +450,7 @@ node scripts/generate-schema.js from-data ./data.json laptop
    - 首页：`http://localhost:3000`
    - 具体模块：`http://localhost:3000/laptop`
 
-### Q4: 修改 Schema 后没有生效？
+### Q3: 修改 Schema 后没有生效？
 
 **可能的原因**：
 1. 数据库表已创建，SQLite 不支持动态添加列
