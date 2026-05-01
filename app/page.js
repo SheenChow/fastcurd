@@ -1,35 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-
-const emptyForm = {
-  name: "",
-  age: "",
-  class_name: "",
-  email: ""
-};
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
-  const [students, setStudents] = useState([]);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState(null);
-  const [message, setMessage] = useState("");
+  const [schemas, setSchemas] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const submitText = useMemo(
-    () => (editingId ? "更新学生信息" : "新增学生"),
-    [editingId]
-  );
-
-  async function fetchStudents() {
+  async function fetchSchemas() {
     setLoading(true);
     try {
-      const res = await fetch("/api/students", { cache: "no-store" });
+      const res = await fetch("/api/schemas", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || "获取学生列表失败");
+        throw new Error(data.message || "获取 Schema 列表失败");
       }
-      setStudents(data.data);
+      setSchemas(data.data);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -38,190 +25,98 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    fetchStudents();
+    fetchSchemas();
   }, []);
-
-  function handleChange(event) {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
-
-  function resetForm() {
-    setForm(emptyForm);
-    setEditingId(null);
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setMessage("");
-
-    const payload = {
-      ...form,
-      age: Number(form.age)
-    };
-
-    const method = editingId ? "PUT" : "POST";
-    const url = editingId ? `/api/students/${editingId}` : "/api/students";
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "提交失败");
-      }
-      setMessage(editingId ? "更新成功" : "新增成功");
-      resetForm();
-      await fetchStudents();
-    } catch (error) {
-      setMessage(error.message);
-    }
-  }
-
-  function handleEdit(row) {
-    setEditingId(row.id);
-    setForm({
-      name: row.name,
-      age: String(row.age),
-      class_name: row.class_name,
-      email: row.email
-    });
-  }
-
-  async function handleDelete(id) {
-    const confirmed = window.confirm("确认删除该学生吗？");
-    if (!confirmed) {
-      return;
-    }
-
-    setMessage("");
-    try {
-      const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "删除失败");
-      }
-      setMessage("删除成功");
-      if (editingId === id) {
-        resetForm();
-      }
-      await fetchStudents();
-    } catch (error) {
-      setMessage(error.message);
-    }
-  }
 
   return (
     <main className="container">
       <section className="card">
-        <h1>学生管理系统</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="form-row">
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="姓名"
-              required
-            />
-            <input
-              name="age"
-              type="number"
-              min="1"
-              value={form.age}
-              onChange={handleChange}
-              placeholder="年龄"
-              required
-            />
-            <input
-              name="class_name"
-              value={form.class_name}
-              onChange={handleChange}
-              placeholder="班级"
-              required
-            />
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="邮箱"
-              required
-            />
-          </div>
-          <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-            <button type="submit">{submitText}</button>
-            <button
-              type="button"
-              className="secondary"
-              onClick={resetForm}
-              disabled={!editingId}
-            >
-              取消编辑
-            </button>
-          </div>
-          {message ? <div className="message">{message}</div> : null}
-        </form>
+        <h1>FastCurd 通用 CRUD 管理系统</h1>
+        <p>基于 Schema 配置的快速开发脚手架</p>
       </section>
 
       <section className="card">
-        <h2>学生列表</h2>
-        {loading ? (
+        <h2>可用的管理模块</h2>
+        {message ? (
+          <p style={{ color: "red" }}>{message}</p>
+        ) : loading ? (
           <p>加载中...</p>
+        ) : schemas.length === 0 ? (
+          <div>
+            <p>暂无可用的管理模块。</p>
+            <p>请在 <code>schemas/</code> 目录下创建 <code>.schema.json</code> 文件来定义新的管理模块。</p>
+          </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>姓名</th>
-                <th>年龄</th>
-                <th>班级</th>
-                <th>邮箱</th>
-                <th>创建时间</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.length ? (
-                students.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.id}</td>
-                    <td>{row.name}</td>
-                    <td>{row.age}</td>
-                    <td>{row.class_name}</td>
-                    <td>{row.email}</td>
-                    <td>{row.created_at}</td>
-                    <td>
-                      <div className="actions">
-                        <button
-                          type="button"
-                          className="secondary"
-                          onClick={() => handleEdit(row)}
-                        >
-                          编辑
-                        </button>
-                        <button
-                          type="button"
-                          className="danger"
-                          onClick={() => handleDelete(row.id)}
-                        >
-                          删除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7}>暂无数据，请先新增学生。</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+            {schemas.map((schema) => (
+              <Link
+                key={schema.tableName}
+                href={`/${schema.tableName}`}
+                style={{
+                  display: "block",
+                  padding: "16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  textDecoration: "none",
+                  color: "inherit",
+                  transition: "box-shadow 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <h3 style={{ margin: "0 0 8px 0" }}>{schema.displayName}</h3>
+                {schema.description && (
+                  <p style={{ margin: "0", color: "#666", fontSize: "14px" }}>
+                    {schema.description}
+                  </p>
+                )}
+                <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: "#999" }}>
+                  表名: {schema.tableName}
+                </p>
+              </Link>
+            ))}
+          </div>
         )}
+      </section>
+
+      <section className="card">
+        <h2>快速开始</h2>
+        <ol>
+          <li>在 <code>schemas/</code> 目录下创建一个新的 <code>.schema.json</code> 文件</li>
+          <li>按照以下格式定义你的数据模型：</li>
+        </ol>
+        <pre style={{ background: "#f5f5f5", padding: "12px", borderRadius: "4px", overflow: "auto" }}>
+{`{
+  "tableName": "products",
+  "displayName": "产品",
+  "description": "产品信息管理",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "label": "产品名称",
+      "required": true,
+      "unique": false,
+      "default": null,
+      "description": "产品的名称"
+    },
+    {
+      "name": "price",
+      "type": "number",
+      "label": "价格",
+      "required": true,
+      "unique": false,
+      "default": 0,
+      "description": "产品价格"
+    }
+  ]
+}`}
+        </pre>
+        <p>支持的字段类型：<code>string</code>、<code>number</code>、<code>boolean</code>、<code>date</code>、<code>datetime</code></p>
       </section>
     </main>
   );

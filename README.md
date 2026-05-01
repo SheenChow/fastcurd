@@ -1,21 +1,21 @@
-# Next.js 15 + React 19 学生管理系统（SQLite3）
+# FastCurd - 通用 CRUD 管理系统脚手架
 
-这是一个基于 `Next.js 15`、`React 19`、`sqlite3` 的最小可运行项目框架，包含学生表完整 CRUD。
+基于 `Next.js 15`、`React 19`、`SQLite3` 的通用 CRUD 管理系统，只需定义一个 JSON 配置文件，即可自动生成完整的数据库表、API 接口和前端管理页面。
 
-## 功能
+## 核心特性
 
-- 新增学生
-- 查询学生列表
-- 按 ID 查询学生
-- 更新学生
-- 删除学生
-- SQLite 自动建表（首次请求 API 时自动初始化）
+- **零代码生成**：只需编写一个 Schema 配置文件
+- **自动建表**：首次访问时自动创建数据库表
+- **完整 CRUD**：包含列表、新增、编辑、删除全功能
+- **动态路由**：无需重启服务，添加新模块无需修改代码
+- **类型支持**：支持多种数据类型（字符串、数字、布尔、日期等）
 
 ## 技术栈
 
 - Next.js 15（App Router）
 - React 19
-- sqlite3
+- SQLite3
+- 零额外依赖
 
 ## 安装与启动
 
@@ -26,31 +26,358 @@ npm run dev
 
 启动后访问：`http://localhost:3000`
 
+## 快速开始
+
+### 方式一：手动创建 Schema
+
+在 `schemas/` 目录下创建一个新的 `.schema.json` 文件，例如 `products.schema.json`：
+
+```json
+{
+  "tableName": "products",
+  "displayName": "产品",
+  "description": "产品信息管理",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "label": "产品名称",
+      "required": true,
+      "unique": false,
+      "default": null,
+      "description": "产品的名称"
+    },
+    {
+      "name": "price",
+      "type": "number",
+      "label": "价格",
+      "required": true,
+      "unique": false,
+      "default": 0,
+      "description": "产品价格（元）"
+    },
+    {
+      "name": "stock",
+      "type": "number",
+      "label": "库存",
+      "required": false,
+      "unique": false,
+      "default": 0,
+      "description": "库存数量"
+    },
+    {
+      "name": "is_active",
+      "type": "boolean",
+      "label": "是否上架",
+      "required": false,
+      "unique": false,
+      "default": true,
+      "description": "产品是否上架销售"
+    },
+    {
+      "name": "publish_date",
+      "type": "date",
+      "label": "上架日期",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "产品上架日期"
+    }
+  ]
+}
+```
+
+保存后，访问 `http://localhost:3000/products` 即可看到完整的产品管理界面！
+
+### 方式二：使用命令行生成 Schema
+
+#### 从现有 JSON 数据生成 Schema：
+
+```bash
+# 假设有一个 laptop.json 文件
+node scripts/generate-schema.js from-json ./laptop.json laptop
+```
+
+#### 手动创建 Schema：
+
+```bash
+node scripts/generate-schema.js create products --fields=name:string:产品名称:true,price:number:价格:true:false:0
+```
+
+字段格式：`字段名:类型:标签:必填:唯一:默认值`
+
+查看帮助：
+```bash
+node scripts/generate-schema.js help
+```
+
+### 方式三：从示例 Schema
+
+项目已内置了一个笔记本电脑的示例 Schema，位于 `schemas/laptop.schema.json`，启动后访问 `http://localhost:3000/laptop` 即可预览效果。
+
+## Schema 配置说明
+
+### 顶层字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| tableName | string | 是 | 数据库表名 |
+| displayName | string | 是 | 显示名称，用于页面标题 |
+| description | string | 否 | 描述信息 |
+| fields | array | 是 | 字段定义数组 |
+
+### 字段定义 (fields)
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| name | string | 是 | 字段名（数据库列名） |
+| type | string | 是 | 数据类型 |
+| label | string | 是 | 显示标签 |
+| required | boolean | 否 | 是否必填（默认 false） |
+| unique | boolean | 否 | 是否唯一（默认 false） |
+| default | any | 否 | 默认值 |
+| description | string | 否 | 字段描述 |
+
+### 支持的数据类型
+
+| 类型 | 说明 | SQLite 映射 |
+|------|------|-------------|
+| string | 字符串 | TEXT |
+| number | 数字 | INTEGER |
+| boolean | 布尔值 | INTEGER (0/1) |
+| date | 日期 | DATETIME |
+| datetime | 日期时间 | DATETIME |
+
 ## 项目结构
 
 ```text
-app/
-  api/students/route.js        # 列表查询 + 新增
-  api/students/[id]/route.js   # 单条查询 + 更新 + 删除
-  globals.css
-  layout.js
-  page.js                      # 前端页面（表单 + 列表）
-lib/
-  db.js                        # sqlite3 连接和数据访问层
-students.db                    # 运行后自动生成
+fastcurd/
+├── app/
+│   ├── api/
+│   │   ├── [table]/
+│   │   │   ├── route.js          # 列表查询 + 新增
+│   │   │   └── [id]/
+│   │   │       └── route.js      # 单条查询 + 更新 + 删除
+│   │   └── schemas/
+│   │       └── route.js           # 获取所有可用 Schema 列表
+│   ├── [table]/
+│   │   └── page.js                # 动态路由页面
+│   ├── globals.css
+│   ├── layout.js
+│   └── page.js                      # 首页（Schema 导航）
+├── components/
+│   └── GenericCRUD.js              # 通用 CRUD 组件
+├── lib/
+│   ├── db.js                      # 原有的学生管理数据库操作
+│   └── genericDb.js               # 通用数据库操作层
+├── schemas/
+│   └── laptop.schema.json        # 示例 Schema 配置
+├── scripts/
+│   └── generate-schema.js       # Schema 生成工具
+├── package.json
+└── README.md
 ```
 
-## API 简要说明
+## API 文档
 
-- `GET /api/students`：获取所有学生
-- `POST /api/students`：新增学生
-- `GET /api/students/:id`：获取单个学生
-- `PUT /api/students/:id`：更新学生
-- `DELETE /api/students/:id`：删除学生
+### 通用 API 接口
 
-### 学生字段
+所有 Schema 配置的 API 接口自动生成，格式为 `:table` 对应 Schema 文件名（不含 `.schema.json` 后缀）。
 
-- `name`: 姓名（字符串）
-- `age`: 年龄（正整数）
-- `class_name`: 班级（字符串）
-- `email`: 邮箱（唯一）
+#### 获取列表
+```
+GET /api/:table
+```
+
+响应示例：
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Dell XPS 15",
+      "cpu_num": 8,
+      "memory": 32,
+      "created_at": "2024-01-01T12:00:00"
+    }
+  ],
+  "schema": {
+    "tableName": "laptops",
+    "displayName": "笔记本电脑",
+    ...
+  }
+}
+```
+
+#### 新增记录
+```
+POST /api/:table
+Content-Type: application/json
+
+{
+  "name": "MacBook Pro",
+  "cpu_num": 10,
+  "memory": 32
+}
+```
+
+#### 获取单条
+```
+GET /api/:table/:id
+```
+
+#### 更新记录
+```
+PUT /api/:table/:id
+Content-Type: application/json
+
+{
+  "name": "MacBook Pro M3",
+  "memory": 64
+}
+```
+
+#### 删除记录
+```
+DELETE /api/:table/:id
+```
+
+### Schema 列表 API
+```
+GET /api/schemas
+```
+
+## 数据库
+
+数据库文件为 `fastcurd.db`，首次访问 API 时自动创建表结构。
+
+- 每张表自动包含以下字段：
+- `id`：自增主键
+- `created_at`：创建时间（自动生成）
+
+## 示例：使用用户提供的 JSON
+
+假设你提供的 JSON 示例：
+```json
+{ 
+  "uuid": "sjxjwljxkjk", 
+  "desc": "这是一个笔记本品牌", 
+  "name": "dell", 
+  "cpu_num": 4, 
+  "memory": 16 
+}
+```
+
+### 步骤 1：创建 Schema 文件
+
+在 `schemas/` 目录下创建 `laptop.schema.json`（已存在）：
+
+```json
+{
+  "tableName": "laptops",
+  "displayName": "笔记本电脑",
+  "description": "笔记本电脑信息管理",
+  "fields": [
+    {
+      "name": "uuid",
+      "type": "string",
+      "label": "唯一标识",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "系统生成的唯一标识"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "label": "品牌名称",
+      "required": true,
+      "unique": false,
+      "default": null,
+      "description": "笔记本品牌名称"
+    },
+    {
+      "name": "cpu_num",
+      "type": "number",
+      "label": "CPU核心数",
+      "required": false,
+      "unique": false,
+      "default": 4,
+      "description": "处理器核心数量"
+    },
+    {
+      "name": "memory",
+      "type": "number",
+      "label": "内存大小(GB)",
+      "required": false,
+      "unique": false,
+      "default": 16,
+      "description": "内存大小，单位GB"
+    },
+    {
+      "name": "desc",
+      "type": "string",
+      "label": "描述",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "产品描述信息"
+    }
+  ]
+}
+```
+
+### 步骤 2：启动服务
+
+```bash
+npm run dev
+```
+
+### 步骤 3：访问管理页面
+
+打开浏览器访问：`http://localhost:3000/laptop`
+
+即可看到完整的笔记本电脑管理界面，支持：
+- 查看列表
+- 新增记录
+- 编辑记录
+- 删除记录
+
+## 自定义开发
+
+### 添加新字段
+
+只需修改对应的 `.schema.json` 文件，添加新的字段定义，刷新页面即可生效。**注意**：SQLite 不支持动态添加列到已有表中。如果需要添加新字段到已有表，需要手动执行数据库迁移或删除数据库文件重新创建表。
+
+### 自定义样式
+
+样式文件位于 `app/globals.css`，可以根据需要修改。
+
+### 自定义组件
+
+通用 CRUD 组件位于 `components/GenericCRUD.js`，可以根据需要扩展功能。
+
+## 注意事项
+
+1. **数据库表创建**：首次访问 API 时自动创建表，表结构基于 Schema 定义。
+
+2. **字段修改**：修改 Schema 后，如果表结构不会自动更新。如需修改字段类型或添加新字段，需要手动修改数据库或删除数据库文件重新创建。
+
+3. **数据类型**：SQLite 是动态类型的，但建议严格按照 Schema 定义的类型存储。
+
+4. **并发**：默认使用 SQLite，适合开发和小型应用。生产环境建议迁移到 PostgreSQL 或 MySQL。
+
+## 原有学生管理系统
+
+项目保留了原有的学生管理系统作为参考，位于：
+- API：`/api/students`
+- 页面：原首页已替换为 Schema 导航
+
+如果需要使用原有的学生管理系统，可以查看：
+- API 直接访问 `/api/students` 接口
+- 或创建一个 `students.schema.json` 文件来使用新的通用系统
+
+## License
+
+MIT
