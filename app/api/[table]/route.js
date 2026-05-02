@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listAll, create, loadSchema } from "@/lib/genericDb";
+import { listAll, create, loadSchema, search } from "@/lib/genericDb";
 
 function validatePayload(schema, body) {
   const data = {};
@@ -60,7 +60,7 @@ async function getSchema(params) {
   }
 }
 
-export async function GET(_, { params }) {
+export async function GET(request, { params }) {
   try {
     const schema = await getSchema(params);
     if (!schema) {
@@ -70,7 +70,20 @@ export async function GET(_, { params }) {
       );
     }
 
-    const rows = await listAll(schema);
+    const { searchParams } = new URL(request.url);
+    const hasSearchParams = Array.from(searchParams.keys()).length > 0;
+
+    let rows;
+    if (hasSearchParams) {
+      const searchParamsObj = {};
+      searchParams.forEach((value, key) => {
+        searchParamsObj[key] = value;
+      });
+      rows = await search(schema, searchParamsObj);
+    } else {
+      rows = await listAll(schema);
+    }
+
     return NextResponse.json({ success: true, data: rows, schema });
   } catch (error) {
     return NextResponse.json(

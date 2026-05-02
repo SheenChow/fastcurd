@@ -74,9 +74,11 @@ export default function HomePage() {
                     {schema.description}
                   </p>
                 )}
-                <p style={{ margin: "8px 0 0 0", fontSize: "12px", color: "#999" }}>
-                  表名: {schema.tableName}
-                </p>
+                <div style={{ marginTop: "8px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "12px", color: "#999" }}>
+                    表名: {schema.tableName}
+                  </span>
+                </div>
               </Link>
             ))}
           </div>

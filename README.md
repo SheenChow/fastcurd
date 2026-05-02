@@ -174,6 +174,7 @@ node scripts/generate-schema.js help
 | unique | boolean | 否 | 是否唯一（默认 false） |
 | default | any | 否 | 默认值 |
 | description | string | 否 | 字段描述 |
+| search_able | boolean | 否 | 是否可搜索（默认 false） |
 
 ### 支持的数据类型
 
@@ -184,6 +185,82 @@ node scripts/generate-schema.js help
 | boolean | 布尔值 | INTEGER (0/1) |
 | date | 日期 | DATETIME |
 | datetime | 日期时间 | DATETIME |
+
+## 搜索功能
+
+系统支持根据字段类型实现不同的搜索效果。只需在字段定义中添加 `"search_able": true` 即可启用搜索功能。
+
+### 搜索功能类型
+
+根据字段类型的不同，搜索功能会有不同的表现：
+
+| 字段类型 | 搜索方式 | 前端控件 |
+|----------|----------|----------|
+| string | 模糊搜索 (LIKE %keyword%) | 文本输入框 |
+| number | 范围搜索 (>= min, <= max) | 两个数字输入框（最小值 ~ 最大值） |
+| date/datetime | 范围搜索 (>= start, <= end) | 两个日期选择器（开始日期 ~ 结束日期） |
+| boolean | 精确搜索 | 下拉选择（全部/是/否） |
+
+### 示例配置
+
+```json
+{
+  "tableName": "drink",
+  "displayName": "饮料",
+  "description": "饮料信息",
+  "fields": [
+    {
+      "name": "uuid",
+      "type": "string",
+      "label": "唯一标识",
+      "required": false,
+      "search_able": true,
+      "description": "系统生成的唯一标识"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "label": "品牌名称",
+      "required": true,
+      "search_able": true,
+      "description": "饮料品牌名称"
+    },
+    {
+      "name": "价格",
+      "type": "number",
+      "label": "价格",
+      "required": false,
+      "search_able": true,
+      "default": 4,
+      "description": "价格"
+    }
+  ]
+}
+```
+
+### API 搜索参数
+
+搜索功能通过 URL 查询参数实现：
+
+| 参数格式 | 说明 | 示例 |
+|----------|------|------|
+| `?fieldName=value` | 字符串模糊搜索，数字精确搜索 | `?name=可口可乐` |
+| `?fieldName_min=value` | 数字最小值 | `?价格_min=5` |
+| `?fieldName_max=value` | 数字最大值 | `?价格_max=10` |
+| `?fieldName_start=value` | 日期开始值 | `?created_at_start=2024-01-01` |
+| `?fieldName_end=value` | 日期结束值 | `?created_at_end=2024-12-31` |
+
+**示例请求**：
+```
+# 搜索品牌名称包含"可口"的饮料
+GET /api/drink?name=可口
+
+# 搜索价格在 5 到 10 之间的饮料
+GET /api/drink?价格_min=5&价格_max=10
+
+# 组合搜索：品牌名称包含"可口"且价格在 5 到 10 之间
+GET /api/drink?name=可口&价格_min=5&价格_max=10
+```
 
 ## 项目结构
 
@@ -463,6 +540,187 @@ npm run dev
    ```
 2. **清除浏览器缓存**：刷新页面或使用无痕模式
 3. **生产环境**：需要手动执行数据库迁移
+
+## 测试用例
+
+以下是完整的测试流程，你可以按照步骤执行：
+
+### 前置条件
+
+确保依赖已安装：
+```bash
+npm install
+```
+
+### 测试用例 1：创建新的 Schema
+
+**目标**：测试创建新的 Schema 并访问管理页面
+
+**步骤**：
+1. 查看现有 Schema：
+   ```bash
+   node scripts/generate-schema.js list
+   ```
+
+2. 创建新的 Schema：
+   ```bash
+   node scripts/generate-schema.js test_products
+   ```
+
+3. 查看生成的文件：
+   ```bash
+   ls -la schemas/test_products.schema.json
+   ```
+
+4. 编辑 Schema，添加搜索字段：
+   ```json
+   {
+     "tableName": "test_products",
+     "displayName": "测试产品",
+     "description": "测试产品管理",
+     "fields": [
+       {
+         "name": "name",
+         "type": "string",
+         "label": "产品名称",
+         "required": true,
+         "search_able": true,
+         "default": null,
+         "description": "产品名称"
+       },
+       {
+         "name": "price",
+         "type": "number",
+         "label": "价格",
+         "required": false,
+         "search_able": true,
+         "default": 0,
+         "description": "产品价格"
+       },
+       {
+         "name": "is_active",
+         "type": "boolean",
+         "label": "是否上架",
+         "required": false,
+         "search_able": true,
+         "default": true,
+         "description": "是否上架"
+       }
+     ]
+   }
+   ```
+
+5. 启动服务：
+   ```bash
+   npm run dev
+   ```
+
+6. 访问页面：
+   - 首页：`http://localhost:3000`
+   - 测试产品管理：`http://localhost:3000/test_products`
+
+### 测试用例 2：测试搜索功能
+
+**目标**：测试不同类型字段的搜索功能
+
+**前置条件**：已完成测试用例 1，且已添加以下测试数据：
+
+| 产品名称 | 价格 | 是否上架 |
+|----------|------|----------|
+| iPhone 15 | 6999 | 是 |
+| iPhone 14 | 4999 | 是 |
+| MacBook Pro | 12999 | 是 |
+| iPad | 3999 | 否 |
+
+**测试步骤**：
+
+1. **测试字符串模糊搜索**：
+   - 在"产品名称"搜索框输入：`iPhone`
+   - 点击"搜索"
+   - **预期结果**：显示 iPhone 15 和 iPhone 14 两条记录
+
+2. **测试数字范围搜索**：
+   - 在"价格"最小值输入：`4000`
+   - 在"价格"最大值输入：`8000`
+   - 点击"搜索"
+   - **预期结果**：显示 iPhone 15、iPhone 14、iPad 三条记录（价格在 4000-8000 之间）
+
+3. **测试布尔搜索**：
+   - 在"是否上架"选择：`否`
+   - 点击"搜索"
+   - **预期结果**：只显示 iPad 一条记录
+
+4. **测试组合搜索**：
+   - 在"产品名称"输入：`iPhone`
+   - 在"价格"最小值输入：`5000`
+   - 点击"搜索"
+   - **预期结果**：只显示 iPhone 15 一条记录
+
+5. **测试重置搜索**：
+   - 点击"重置"按钮
+   - **预期结果**：显示所有 4 条记录
+
+### 测试用例 3：测试 CRUD 功能
+
+**目标**：测试完整的增删改查功能
+
+**步骤**：
+
+1. **新增记录**：
+   - 产品名称：`Test Product`
+   - 价格：`100`
+   - 是否上架：`是`
+   - 点击"新增"
+   - **预期结果**：显示"新增成功"，列表中出现新记录
+
+2. **编辑记录**：
+   - 点击新增记录的"编辑"按钮
+   - 修改产品名称为：`Updated Product`
+   - 点击"更新"
+   - **预期结果**：显示"更新成功"，列表中记录已更新
+
+3. **删除记录**：
+   - 点击编辑后记录的"删除"按钮
+   - 确认删除
+   - **预期结果**：显示"删除成功"，列表中记录已删除
+
+### 测试用例 4：测试 API 接口
+
+**目标**：测试 API 接口的搜索功能
+
+**步骤**：
+
+1. **获取所有数据**：
+   ```bash
+   curl -s http://localhost:3000/api/test_products
+   ```
+
+2. **字符串搜索**：
+   ```bash
+   curl -s "http://localhost:3000/api/test_products?name=iPhone"
+   ```
+
+3. **数字范围搜索**：
+   ```bash
+   curl -s "http://localhost:3000/api/test_products?price_min=4000&price_max=8000"
+   ```
+
+4. **组合搜索**：
+   ```bash
+   curl -s "http://localhost:3000/api/test_products?name=iPhone&price_min=5000"
+   ```
+
+### 测试清理
+
+测试完成后，可以删除测试数据和 Schema：
+
+```bash
+# 删除数据库（可选）
+rm fastcurd.db
+
+# 删除测试 Schema
+rm schemas/test_products.schema.json
+```
 
 ## 原有学生管理系统
 
