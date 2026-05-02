@@ -1,0 +1,52 @@
+{
+  "tableName": "drink",
+  "displayName": "饮料",
+  "description": "饮料信息",
+  "fields": [
+    {
+      "name": "uuid",
+      "type": "string",
+      "label": "唯一标识",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "系统生成的唯一标识"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "label": "品牌名称",
+      "required": true,
+      "unique": false,
+      "default": null,
+      "description": "笔记本品牌名称"
+    },
+    {
+      "name": "价格",
+      "type": "number",
+      "label": "价格",
+      "required": false,
+      "unique": false,
+      "default": 4,
+      "description": "价格"
+    },
+    {
+      "name": "desc",
+      "type": "string",
+      "label": "描述",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "产品描述信息"
+    },
+    {
+      "name": "desc1",
+      "type": "string",
+      "label": "细节描述",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "细节描述"
+    }
+  ]
+}

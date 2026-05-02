@@ -1,0 +1,61 @@
+{
+  "tableName": "server",
+  "displayName": "服务器电脑",
+  "description": "服务器电脑信息管理",
+  "fields": [
+    {
+      "name": "uuid",
+      "type": "string",
+      "label": "唯一标识",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "系统生成的唯一标识"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "label": "品牌名称",
+      "required": true,
+      "unique": false,
+      "default": null,
+      "description": "笔记本品牌名称"
+    },
+    {
+      "name": "cpu_num",
+      "type": "number",
+      "label": "CPU核心数",
+      "required": false,
+      "unique": false,
+      "default": 4,
+      "description": "处理器核心数量"
+    },
+    {
+      "name": "memory",
+      "type": "number",
+      "label": "内存大小(GB)",
+      "required": false,
+      "unique": false,
+      "default": 16,
+      "description": "内存大小，单位GB"
+    },
+    {
+      "name": "desc",
+      "type": "string",
+      "label": "描述",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "产品描述信息"
+    },
+    {
+      "name": "desc1",
+      "type": "string",
+      "label": "细节描述",
+      "required": false,
+      "unique": false,
+      "default": null,
+      "description": "细节描述"
+    }
+  ]
+}
