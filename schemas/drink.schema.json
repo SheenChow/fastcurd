@@ -10,7 +10,8 @@
       "required": false,
       "unique": false,
       "default": null,
-      "description": "系统生成的唯一标识"
+      "description": "系统生成的唯一标识",
+      "search_able": true
     },
     {
       "name": "name",
@@ -19,7 +20,8 @@
       "required": true,
       "unique": false,
       "default": null,
-      "description": "笔记本品牌名称"
+      "description": "饮料品牌名称",
+      "search_able": true
     },
     {
       "name": "价格",
@@ -28,7 +30,8 @@
       "required": false,
       "unique": false,
       "default": 4,
-      "description": "价格"
+      "description": "价格",
+      "search_able": true
     },
     {
       "name": "desc",
