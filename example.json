@@ -1,0 +1,61 @@
+{
+  "tableName": "drink222",
+  "displayName": "饮料",
+  "description": "饮料信息管理",
+  "fields": [
+    {
+      "name": "uuid",
+      "type": "string",
+      "label": "唯一标识",
+      "required": false,
+      "search_able": true,
+      "default": null,
+      "description": "系统生成的唯一标识"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "label": "品牌名称",
+      "required": true,
+      "search_able": true,
+      "default": null,
+      "description": "饮料品牌名称"
+    },
+    {
+      "name": "price",
+      "type": "number",
+      "label": "价格",
+      "required": false,
+      "search_able": true,
+      "default": 0,
+      "description": "饮料价格（元）"
+    },
+    {
+      "name": "is_active",
+      "type": "boolean",
+      "label": "是否在售",
+      "required": false,
+      "search_able": true,
+      "default": true,
+      "description": "饮料是否在售"
+    },
+    {
+      "name": "publish_date",
+      "type": "date",
+      "label": "上市日期",
+      "required": false,
+      "search_able": true,
+      "default": null,
+      "description": "饮料上市日期"
+    },
+    {
+      "name": "desc",
+      "type": "string",
+      "label": "描述",
+      "required": false,
+      "search_able": false,
+      "default": null,
+      "description": "产品描述信息"
+    }
+  ]
+}
